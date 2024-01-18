@@ -7,6 +7,12 @@ import userRouter from "./src/features/routes/employee.router.js"
 import { viewAllEmployeesRepo } from "./src/features/repository/admin.repository.js";
 import { pendingReviewRepo } from "./src/features/repository/employee.repository.js";
 import { requestReviewRepo } from "./src/features/repository/performance.repository.js";
+
+import { connectToDb } from "./src/config/db.js";
+
+connectToDb();
+
+
 const app = express();
 
 app.use(expressEjsLayouts);
@@ -54,6 +60,41 @@ app.get('*', (req, res) => {
     res.render('error')
 });
 
+export const handler = async (event, context) => {
+  return new Promise(async (resolve, reject) => {
+      // Create a mock Express request and response objects
+      const req = {};
+      const res = {
+          render: (view, data) => {
+              resolve({
+                  statusCode: 200,
+                  body: JSON.stringify({
+                      view,
+                      data
+                  }),
+              });
+          },
+          status: (code) => {
+              return {
+                  send: (text) => {
+                      resolve({
+                          statusCode: code,
+                          body: text,
+                      });
+                  },
+              };
+          },
+      };
 
-
-export default app;
+      try {
+          // Simulate Express app behavior with the mock objects
+          await app(req, res);
+      } catch (error) {
+          reject({
+              statusCode: 500,
+              body: 'Internal Server Error',
+          });
+          console.error('Error:', error);
+      }
+  });
+};
