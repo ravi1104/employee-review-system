@@ -1,3 +1,5 @@
+// index.js
+
 import express from "express";
 import path from "path";
 import expressEjsLayouts from 'express-ejs-layouts';
@@ -7,11 +9,6 @@ import userRouter from "./src/features/routes/employee.router.js"
 import { viewAllEmployeesRepo } from "./src/features/repository/admin.repository.js";
 import { pendingReviewRepo } from "./src/features/repository/employee.repository.js";
 import { requestReviewRepo } from "./src/features/repository/performance.repository.js";
-
-import { connectToDb } from "./src/config/db.js";
-
-connectToDb();
-
 
 const app = express();
 
@@ -25,76 +22,42 @@ app.use(session({
     secret: 'your-secret-key',
     resave: false,
     saveUninitialized: true
-  }));
+}));
 
-//Routes
+// Routes
 app.get('/', async (req, res) => {
     try {
-      let employees = [];
-      let pendingReview = [];
-      let showLogin = true;
+        let employees = [];
+        let pendingReview = [];
+        let showLogin = true;
 
-      if (req.session._id) {
-        employees = await viewAllEmployeesRepo(req.session._id);
-        pendingReview = await requestReviewRepo(req.session._id);
-        showLogin = false;
-        return res.render('home', { req, employees, pendingReview, showLogin,showlogout:true });
-      }
-  
-      res.render('home', { req, employees, pendingReview, showLogin });
+        if (req.session._id) {
+            employees = await viewAllEmployeesRepo(req.session._id);
+            pendingReview = await requestReviewRepo(req.session._id);
+            showLogin = false;
+            return res.render('home', { req, employees, pendingReview, showLogin, showlogout: true });
+        }
+
+        res.render('home', { req, employees, pendingReview, showLogin });
     } catch (error) {
-      res.status(500).send('Internal Server Error');
-      console.error('Error:', error);
+        res.status(500).send('Internal Server Error');
+        console.error('Error:', error);
     }
-  });
-  
-app.get('/login',(req,res)=>{
-    res.render('login-register',{showlogin:true})
-})
-app.get('/register',(req,res)=>{
-    res.render('login-register',{showlogin:false});
-})
-app.use('/admin',adminRouter);
-app.use('/user',userRouter);
-app.get('*', (req, res) => {
-    res.render('error')
 });
 
-export const handler = async (event, context) => {
-  return new Promise(async (resolve, reject) => {
-      // Create a mock Express request and response objects
-      const req = {};
-      const res = {
-          render: (view, data) => {
-              resolve({
-                  statusCode: 200,
-                  body: JSON.stringify({
-                      view,
-                      data
-                  }),
-              });
-          },
-          status: (code) => {
-              return {
-                  send: (text) => {
-                      resolve({
-                          statusCode: code,
-                          body: text,
-                      });
-                  },
-              };
-          },
-      };
+app.get('/login', (req, res) => {
+    res.render('login-register', { showlogin: true });
+});
 
-      try {
-          // Simulate Express app behavior with the mock objects
-          await app(req, res);
-      } catch (error) {
-          reject({
-              statusCode: 500,
-              body: 'Internal Server Error',
-          });
-          console.error('Error:', error);
-      }
-  });
-};
+app.get('/register', (req, res) => {
+    res.render('login-register', { showlogin: false });
+});
+
+app.use('/admin', adminRouter);
+app.use('/user', userRouter);
+
+app.get('*', (req, res) => {
+    res.render('error');
+});
+
+export { app };  // Export the Express app
