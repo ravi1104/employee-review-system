@@ -25,8 +25,7 @@ The Employee Review System facilitates the management of employee feedback and p
 
 - Node.js
 - Express.js
-- MongoDB (or your preferred database)
-- (Include any other relevant technologies/frameworks used)
+- MongoDB
 
 ## Features
 
